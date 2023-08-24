@@ -1,13 +1,13 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using EmergenceWorld.Scripts.Core.Components;
+﻿using EmergenceWorld.Scripts.Core.Components;
 using EmergenceWorld.Scripts.Core.Noise;
 using EmergenceWorld.Scripts.Core.OpenGLObjects;
 using EmergenceWorld.Scripts.Core.Scenes;
 using EmergenceWorld.Scripts.Core.WorldGeneration;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using StbImageSharp;
 using System.Drawing;
 
