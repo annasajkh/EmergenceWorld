@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmergenceWorld", "EmergenceWorld\EmergenceWorld.csproj", "{93131827-8230-4DE7-A519-1425E459B371}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93131827-8230-4DE7-A519-1425E459B371}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93131827-8230-4DE7-A519-1425E459B371}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93131827-8230-4DE7-A519-1425E459B371}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93131827-8230-4DE7-A519-1425E459B371}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8B760BF9-41B1-4B10-959B-FD66AB9085FD}
+	EndGlobalSection
+EndGlobal
