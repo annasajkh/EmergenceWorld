@@ -1,34 +1,33 @@
 ﻿using EmergenceWorld.Scripts.Core.Components;
+using EmergenceWorld.Scripts.Core.Managers;
 using EmergenceWorld.Scripts.Core.Noise;
 using EmergenceWorld.Scripts.Core.OpenGLObjects;
 using EmergenceWorld.Scripts.Core.Scenes;
-using EmergenceWorld.Scripts.Core.WorldGeneration;
+using EmergenceWorld.Scripts.Core.Utils;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using StbImageSharp;
 using System.Drawing;
 
+#pragma warning disable CS8618
 
 namespace EmergenceWorld.Scripts.Core
 {
     public class Game : GameWindow
     {
-        public Texture2D DefaultTexture { get; private set; }
-
         public VertexArrayObject VertexArrayObject { get; private set; }
         public Renderer Renderer { get; private set; }
+        public static ResourceManager ResourceManager { get; private set; }
+        public static SceneManager SceneManager { get; private set; }
+        public static Random Random { get; } = new Random();
+        public static FastNoiseLite Noise { get; } = new FastNoiseLite(Random.Next());
         public static int WindowWidth { get; private set; }
         public static int WindowHeight { get; private set; }
+        public static float TimeScale { get; set; } = 1;
+        public static bool Paused { get; set; }
 
-        private World world;
-
-        private bool mouseFree = false;
-
-        public Game(string title, int width, int height)
-                : base(GameWindowSettings.Default,
+        public Game(string title, int width, int height): base(GameWindowSettings.Default,
                         new NativeWindowSettings()
                         {
                             Title = title,
@@ -38,31 +37,18 @@ namespace EmergenceWorld.Scripts.Core
             WindowWidth = width;
             WindowHeight = height;
 
-            // Settings
-            World.noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
-
             CenterWindow();
 
-            GL.Enable(EnableCap.DepthTest);
-            GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            Settings.Init();
 
-            StbImage.stbi_set_flip_vertically_on_load(1);
+            ResourceManager = new ResourceManager();
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-
-
-            //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-
+            // Load resources
+            ResourceManager.AddShader("VoxelShader");
 
 
             // Setup the Renderer
-            Renderer = new Renderer(new Shader(vertexShaderPath: Path.GetFullPath("Resources/Shaders/default.vert"),
-                                               geometryShaderPath: Path.GetFullPath("Resources/Shaders/default.geom"),
-                                               fragmentShaderPath: Path.GetFullPath("Resources/Shaders/default.frag")));
+            Renderer = new Renderer(ResourceManager.Shaders["VoxelShader"]);
 
             Renderer.Shader.Bind();
             GL.Uniform3(Renderer.Shader.GetUniformLocation("material.ambient"), 1.25f, 1.25f, 1.25f);
@@ -75,20 +61,15 @@ namespace EmergenceWorld.Scripts.Core
             GL.Uniform3(Renderer.Shader.GetUniformLocation("dirLight.specular"), 1f, 1f, 1f);
             Renderer.Shader.Unbind();
 
-            DefaultTexture = new Texture2D(ImageResult.FromStream(File.OpenRead("Resources/Textures/default.png"), ColorComponents.RedGreenBlueAlpha));
-
             VertexArrayObject = new VertexArrayObject();
 
-            world = new World();
-
-
-            new Chunk(new Vector3i(0, 0, 0));
+            SceneManager = new SceneManager(new World());
         }
 
         protected override void OnLoad()
         {
             base.OnLoad();
-            world.OnLoad();
+            SceneManager.CurrentScene.Load();
         }
 
         protected override void OnResize(ResizeEventArgs resizeEventArgs)
@@ -100,7 +81,7 @@ namespace EmergenceWorld.Scripts.Core
 
             GL.Viewport(0, 0, WindowWidth, WindowHeight);
 
-            world.OnResize();
+            SceneManager.CurrentScene.WindowResized(Renderer);
         }
 
         protected override void OnUnload()
@@ -108,7 +89,7 @@ namespace EmergenceWorld.Scripts.Core
             base.OnUnload();
 
             Renderer.Dispose();
-            world.OnUnload();
+            SceneManager.CurrentScene.Unload();
         }
 
         protected override void OnUpdateFrame(FrameEventArgs frameEventArgs)
@@ -120,28 +101,29 @@ namespace EmergenceWorld.Scripts.Core
 
             if(keyboardState.IsKeyPressed(Keys.P))
             {
-                mouseFree = !mouseFree;
+                Paused = !Paused;
             }
 
-            if (mouseFree)
+            if (Paused)
             {
                 CursorState = CursorState.Normal;
             }
             else
             {
                 CursorState = CursorState.Grabbed;
+                
+
+                if (keyboardState.IsKeyDown(Keys.Escape))
+                {
+                    Close();
+                }
+
+                Renderer.Shader.Bind();
+                GL.Uniform3(Renderer.Shader.GetUniformLocation("lightColor"), 1f, 1f, 1f);
+                Renderer.Shader.Unbind();
+
+                SceneManager.CurrentScene.Update(Renderer, keyboardState, MouseState, (float)frameEventArgs.Time * TimeScale);
             }
-
-            if (keyboardState.IsKeyDown(Keys.Escape))
-            {
-                Close();
-            }
-
-            Renderer.Shader.Bind();
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("lightColor"), 1f, 1f, 1f);
-            Renderer.Shader.Unbind();
-
-            world.OnUpdateFrame(keyboardState, MouseState, (float)frameEventArgs.Time);
         }
 
         protected override void OnRenderFrame(FrameEventArgs args)
@@ -153,7 +135,7 @@ namespace EmergenceWorld.Scripts.Core
 
             Renderer.Begin();
 
-            world.OnRenderFrame(Renderer);
+            SceneManager.CurrentScene.Render(Renderer, VertexArrayObject);
 
             Renderer.End();
 

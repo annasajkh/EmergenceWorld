@@ -1,5 +1,5 @@
-using OpenTK.Mathematics;
 using EmergenceWorld.Scripts.Core.Containers;
+using OpenTK.Mathematics;
 
 namespace EmergenceWorld.Scripts.Core.Components
 {
@@ -9,15 +9,15 @@ namespace EmergenceWorld.Scripts.Core.Components
 
         new Vertex[]
         {
-            new Vertex(new Vector3(-1, 0, -1), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(0, 0)),
-            new Vertex(new Vector3(-1, 0, 1), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1, 0)),
-            new Vertex(new Vector3(1, 0, 1), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1, 1)),
-            new Vertex(new Vector3(1, 0, -1), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(0, 1))
+            new Vertex(new Vector3(0.5f,  0.5f, 0.0f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f, 0.0f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f, -0.5f, 0.0f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f, 0.0f), new Color4(1f, 1f, 1f, 1f))
         },
 
         new uint[]
         {
-            0, 1, 3,
+            0, 1, 3, 
             1, 2, 3
         });
 
@@ -25,46 +25,62 @@ namespace EmergenceWorld.Scripts.Core.Components
 
         new Vertex[]
         {
-            new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 0.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 1.0f, 0.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 1.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 1.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(0.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 1.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(0.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 0.0f)),
-            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2(1.0f, 1.0f)),
-            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 1.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 0.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 1.0f, 0.0f)),
-            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 1.0f, 1.0f)),
-            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f), Vector3.Zero, new Vector2( 0.0f, 1.0f))
+            // front
+            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+
+            // back
+            new Vertex(new Vector3(0.5f, 0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+
+            // left
+            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+
+            // right
+            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+
+            // top
+            new Vertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+
+            // bottom
+            new Vertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new Vertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
         },
 
         new uint[]
         {
-            0, 3, 2,
-            2, 1, 0,
-            4, 5, 6,
-            6, 7 ,4,
-            11, 8, 9,
-            9, 10, 11,
-            12, 13, 14,
-            14, 15, 12,
-            16, 17, 18,
-            18, 19, 16,
-            20, 21, 22,
-            22, 23, 20
+            0, 1, 3, 
+            1, 2, 3, 
+            
+            4, 5, 7, 
+            5, 6, 7, 
+            
+            8, 9, 11, 
+            9, 10, 11, 
+            
+            12, 13, 15, 
+            13, 14, 15, 
+            
+            16, 17, 19, 
+            17, 18, 19, 
+            
+            20, 21, 23, 
+            21, 22, 23,
         });
 
 

@@ -1,6 +1,6 @@
+using EmergenceWorld.Scripts.Core.Interfaces;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using EmergenceWorld.Scripts.Core.Interfaces;
 
 namespace EmergenceWorld.Scripts.Core.Entities
 {
@@ -14,6 +14,10 @@ namespace EmergenceWorld.Scripts.Core.Entities
 
         public Entity(Vector3 position, Vector3 rotation, Vector3 scale)
         {
+            Position = position;
+            Rotation = rotation;
+            Scale = scale;
+
             Velocity = new Vector3();
         }
 

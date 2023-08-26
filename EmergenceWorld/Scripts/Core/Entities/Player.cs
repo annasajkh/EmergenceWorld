@@ -1,6 +1,6 @@
+using EmergenceWorld.Scripts.Core.Components;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using EmergenceWorld.Scripts.Core.Components;
 
 namespace EmergenceWorld.Scripts.Core.Entities
 {
@@ -8,7 +8,6 @@ namespace EmergenceWorld.Scripts.Core.Entities
     {
         private float speed = 1000f;
 
-        private Vector2 lastMousePosition;
 
         private float yaw;
         private float pitch;
@@ -30,11 +29,8 @@ namespace EmergenceWorld.Scripts.Core.Entities
 
         public void GetInput(KeyboardState keyboardState, MouseState mouseState, float delta)
         {
-
-            Vector2 mousePosition = mouseState.Position;
-
-            float deltaX = mousePosition.X - lastMousePosition.X;
-            float deltaY = mousePosition.Y - lastMousePosition.Y;
+            float deltaX = mouseState.Position.X - mouseState.PreviousPosition.X;
+            float deltaY = mouseState.Position.Y - mouseState.PreviousPosition.Y;
 
             yaw += deltaX * sensitivity;
             pitch -= deltaY * sensitivity;
@@ -55,8 +51,6 @@ namespace EmergenceWorld.Scripts.Core.Entities
             cameraDirection.Z = (float)Math.Cos(MathHelper.DegreesToRadians(pitch)) * (float)Math.Sin(MathHelper.DegreesToRadians(yaw));
 
             Camera.Direction = Vector3.Normalize(cameraDirection);
-
-            lastMousePosition = new Vector2(mousePosition.X, mousePosition.Y);
 
             Vector3 dir = new Vector3();
 

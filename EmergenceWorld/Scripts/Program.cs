@@ -4,13 +4,12 @@ namespace EmergenceWorld.Scripts
 {
     public class Program
     {
-
-        public static Game game = new Game("Emergence World", 960, 540);
-
         static void Main(string[] args)
         {
-            game.Run();
-            game.Dispose();
+            using(Game game = new Game("Emergence World", 960, 540))
+            {
+                game.Run();
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
-using OpenTK.Mathematics;
 using EmergenceWorld.Scripts.Core.Containers;
 using EmergenceWorld.Scripts.Core.OpenGLObjects;
+using OpenTK.Mathematics;
 
 namespace EmergenceWorld.Scripts.Utils
 {
@@ -54,13 +54,6 @@ namespace EmergenceWorld.Scripts.Utils
                 verticesResult[i + 4] = vertices[index].Color.G;
                 verticesResult[i + 5] = vertices[index].Color.B;
                 verticesResult[i + 6] = vertices[index].Color.A;
-
-                verticesResult[i + 7] = vertices[index].Normal.X;
-                verticesResult[i + 8] = vertices[index].Normal.Y;
-                verticesResult[i + 9] = vertices[index].Normal.Z;
-
-                verticesResult[i + 10] = vertices[index].TextureCoordinate.X;
-                verticesResult[i + 11] = vertices[index].TextureCoordinate.Y;
 
                 index++;
             }

@@ -33,7 +33,6 @@ struct PointLight {
 in vec3 gFragPos;  
 in vec4 gColor;
 in vec3 gNormal;
-in vec2 gUV;
 
 in vec3 gViewPos;
 
@@ -44,7 +43,7 @@ uniform vec3 lightColor;
 // #define NR_POINT_LIGHTS 4
 // uniform PointLight pointLights[NR_POINT_LIGHTS];
 
-float ambientStrength = 0.5;
+float ambientStrength = 0.25;
 float specularStrength = 0.1;
 
 // outputs
@@ -98,8 +97,6 @@ vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewD
 
 void main()
 {
-	vec4 tColor = texture(uTexture, gUV);
-
     vec3 norm = gNormal;
     vec3 viewDir = normalize(gViewPos - gFragPos);
 
@@ -112,5 +109,5 @@ void main()
     //    result += CalculatePointLight(pointLights[i], norm, vFragPos, viewDir);
     // }
 
-	FragColor = tColor * vec4(result, 1.0) * gColor;
+	FragColor = vec4(result, 1.0) * gColor;
 }

@@ -1,5 +1,5 @@
-using OpenTK.Graphics.OpenGL4;
 using EmergenceWorld.Scripts.Core.Abstractions;
+using OpenTK.Graphics.OpenGL4;
 
 namespace EmergenceWorld.Scripts.Core.OpenGLObjects
 {
@@ -29,25 +29,6 @@ namespace EmergenceWorld.Scripts.Core.OpenGLObjects
                                    stride: Shader.AllAttributeSize * sizeof(float),
                                    offset: Shader.PositionAttributeSize * sizeof(float));
             GL.EnableVertexAttribArray(1);
-
-            // normal attribute
-            GL.VertexAttribPointer(index: 2,
-                                   size: Shader.NormalAttributeSize,
-                                   type: VertexAttribPointerType.Float,
-                                   normalized: false,
-                                   stride: Shader.AllAttributeSize * sizeof(float),
-                                   offset: (Shader.PositionAttributeSize + Shader.ColorAttributeSize) * sizeof(float));
-            GL.EnableVertexAttribArray(2);
-
-
-            // texture coordinates attribute
-            GL.VertexAttribPointer(index: 3,
-                                   size: Shader.TextureCoordinateAttributeSize,
-                                   type: VertexAttribPointerType.Float,
-                                   normalized: false,
-                                   stride: Shader.AllAttributeSize * sizeof(float),
-                                   offset: (Shader.PositionAttributeSize + Shader.ColorAttributeSize + Shader.NormalAttributeSize) * sizeof(float));
-            GL.EnableVertexAttribArray(3);
         }
 
         public override void Bind()

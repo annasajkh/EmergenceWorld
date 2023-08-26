@@ -1,5 +1,5 @@
-using OpenTK.Graphics.OpenGL4;
 using EmergenceWorld.Scripts.Core.Abstractions;
+using OpenTK.Graphics.OpenGL4;
 
 namespace EmergenceWorld.Scripts.Core.OpenGLObjects
 {
@@ -7,13 +7,8 @@ namespace EmergenceWorld.Scripts.Core.OpenGLObjects
     {
         public static int PositionAttributeSize { get; } = 3;
         public static int ColorAttributeSize { get; } = 4;
-        public static int NormalAttributeSize { get; } = 3;
-        public static int TextureCoordinateAttributeSize { get; } = 2;
 
-        public static int AllAttributeSize { get; } = PositionAttributeSize +
-                                                      ColorAttributeSize +
-                                                      NormalAttributeSize +
-                                                      TextureCoordinateAttributeSize;
+        public static int AllAttributeSize { get; } = PositionAttributeSize + ColorAttributeSize;
 
         private static Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
 

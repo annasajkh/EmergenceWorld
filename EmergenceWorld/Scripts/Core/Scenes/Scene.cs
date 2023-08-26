@@ -1,20 +1,20 @@
-﻿using OpenTK.Windowing.GraphicsLibraryFramework;
-using EmergenceWorld.Scripts.Core.Components;
+﻿using EmergenceWorld.Scripts.Core.Components;
+using EmergenceWorld.Scripts.Core.OpenGLObjects;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace EmergenceWorld.Scripts.Core.Scenes
 {
     public abstract class Scene
     {
+        public abstract void Load();
 
-        public abstract void OnLoad();
+        public abstract void Unload();
 
-        public abstract void OnUnload();
+        public abstract void WindowResized(Renderer renderer);
 
-        public abstract void OnResize();
+        public abstract void Update(Renderer renderer, KeyboardState keyboardState, MouseState mouseState, float delta);
 
-        public abstract void OnUpdateFrame(KeyboardState keyboardState, MouseState mouseState, float delta);
-
-        public abstract void OnRenderFrame(Renderer renderer);
+        public abstract void Render(Renderer renderer, VertexArrayObject vertexArrayObject);
 
     }
 }

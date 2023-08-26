@@ -1,6 +1,6 @@
+using EmergenceWorld.Scripts.Core.OpenGLObjects;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using EmergenceWorld.Scripts.Core.OpenGLObjects;
 
 namespace EmergenceWorld.Scripts.Core.Components
 {
