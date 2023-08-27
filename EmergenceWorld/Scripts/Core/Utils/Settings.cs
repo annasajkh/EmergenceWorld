@@ -7,8 +7,8 @@ namespace EmergenceWorld.Scripts.Core.Utils
     public static class Settings
     {
         public static int ChunkSize { get; } = 36; // in particle unit
-        public static int ParticleSize { get; } = 8;
-        public static int ChunkFullSize { get; } = ChunkSize * ParticleSize; // chunk actual size
+        public static int VoxelSize { get; } = 8;
+        public static int ChunkFullSize { get; } = ChunkSize * VoxelSize; // chunk actual size
 
         public static void Init()
         {

@@ -1,8 +1,8 @@
 ﻿using EmergenceWorld.Scripts.Core.Components;
 using EmergenceWorld.Scripts.Core.Containers;
-using EmergenceWorld.Scripts.Core.Particles;
 using EmergenceWorld.Scripts.Core.Scenes;
 using EmergenceWorld.Scripts.Core.Utils;
+using EmergenceWorld.Scripts.Core.Voxels;
 using EmergenceWorld.Scripts.Utils;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
@@ -14,14 +14,11 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
     {
         public World World { get; }
         public Vector3i Position { get; private set; }
-        public Particle[,,] Particles { get; private set; }
+        public Voxel[,,] Voxels { get; private set; }
         public Mesh Mesh { get; private set; }
         public Dictionary<Vertex, int> VerticesFastIndexOf { get; private set; }
         public List<Vertex> Vertices { get; private set; }
         public List<uint> Indices { get; private set; }
-
-        // for checking if any particle in this chunk moves
-        public bool IsParticleMove { get; set; } = false;
 
         private Dictionary<int, Vertex> verticesTemp = new Dictionary<int, Vertex>();
 
@@ -33,7 +30,7 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
         {
             Position = position;
             World = world;
-            Particles = new Particle[Settings.ChunkSize, Settings.ChunkSize, Settings.ChunkSize];
+            Voxels = new Voxel[Settings.ChunkSize, Settings.ChunkSize, Settings.ChunkSize];
 
             VerticesFastIndexOf = new Dictionary<Vertex, int>();
             Vertices = new List<Vertex>();
@@ -54,25 +51,25 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
         public void BuildChunk()
         {
-            //ParticleType[] particleTypes = new ParticleType[] { ParticleType.Water, ParticleType.Sand };
+            //VoxelType[] particleTypes = new VoxelType[] { VoxelType.Water, VoxelType.Sand };
 
-            // World.noise.GetNoise(Position.X + i * 2, Position.Y + j * 2, Position.Z + k * 2) > 0 ? particleTypes[World.random.Next() % particleTypes.Length] : ParticleType.Empty
+            // World.noise.GetNoise(Position.X + i * 2, Position.Y + j * 2, Position.Z + k * 2) > 0 ? particleTypes[World.random.Next() % particleTypes.Length] : VoxelType.Empty
 
-            for (int i = 0; i < Particles.GetLength(0); i++)
+            for (int i = 0; i < Voxels.GetLength(0); i++)
             {
-                for (int j = 0; j < Particles.GetLength(1); j++)
+                for (int j = 0; j < Voxels.GetLength(1); j++)
                 {
-                    for (int k = 0; k < Particles.GetLength(2); k++)
+                    for (int k = 0; k < Voxels.GetLength(2); k++)
                     {
 
                         // particle position is its chunk position with offset depending on its index
-                        Particles[i, j, k] = new Particle(position: new Vector3i(Position.X + i,
+                        Voxels[i, j, k] = new Voxel(position: new Vector3i(Position.X + i,
                                                                                  Position.Y + j,
                                                                                  Position.Z + k),
                                                           i: i,
                                                           j: j,
                                                           k: k,
-                                                          type: Game.Noise.GetNoise(Position.X + i * 2, Position.Y + j * 2, Position.Z + k * 2) > 0 ? ParticleType.Water : ParticleType.Air,
+                                                          type: Game.Noise.GetNoise(Position.X + i * 2, Position.Y + j * 2, Position.Z + k * 2) > 0 ? VoxelType.Water : VoxelType.Air,
                                                           chunk: this);
                     }
                 }
@@ -87,34 +84,34 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
         /// </summary>
         public void BuildMesh()
         {
-            for (int i = 0; i < Particles.GetLength(0); i++)
+            for (int i = 0; i < Voxels.GetLength(0); i++)
             {
-                for (int j = 0; j < Particles.GetLength(1); j++)
+                for (int j = 0; j < Voxels.GetLength(1); j++)
                 {
-                    for (int k = 0; k < Particles.GetLength(2); k++)
+                    for (int k = 0; k < Voxels.GetLength(2); k++)
                     {
-                        Particle particle = Particles[i, j, k];
+                        Voxel particle = Voxels[i, j, k];
 
-                        if (!(particle.Type == ParticleType.Air))
+                        if (!(particle.Type == VoxelType.Air))
                         {
                             // particle actual position in world coordinate and not particle coordinate
                             Vector3 particleActualPosition = particle.Position;
 
 
                             // check front this particle is if it is an air or not
-                            if (IsParticleEmpty(i, j, k + 1))
+                            if (IsVoxelEmpty(i, j, k + 1))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.FrontAndBack);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.FrontAndBack);
+
                                 // build front quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[0].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[0].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[1].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[1].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[2].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[2].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[3].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[3].Position, isVoxelMerged);
 
                                 AddQuadIndices();
                             }
@@ -122,20 +119,19 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
 
                             // check right this particle is if it is an air or not
-                            if (IsParticleEmpty(i + 1, j, k))
+                            if (IsVoxelEmpty(i + 1, j, k))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.LeftAndRight);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.LeftAndRight);
 
                                 // build right quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[12].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[12].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[13].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[13].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[14].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[14].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[15].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[15].Position, isVoxelMerged);
 
                                 AddQuadIndices();
                             }
@@ -143,20 +139,19 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
 
                             // check back this particle is if it is an air or not
-                            if (IsParticleEmpty(i, j, k - 1))
+                            if (IsVoxelEmpty(i, j, k - 1))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.FrontAndBack);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.FrontAndBack);
 
                                 // build back quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[4].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[4].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[5].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[5].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[6].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[6].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[7].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[7].Position, isVoxelMerged);
 
                                 AddQuadIndices();
                             }
@@ -164,20 +159,19 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
 
                             // check left this particle is if it is an air or not
-                            if (IsParticleEmpty(i - 1, j, k))
+                            if (IsVoxelEmpty(i - 1, j, k))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.LeftAndRight);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.LeftAndRight);
 
                                 // build left quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[8].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[8].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[9].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[9].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[10].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[10].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[11].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[11].Position, isVoxelMerged);
 
                                 AddQuadIndices();
                             }
@@ -185,20 +179,19 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
 
                             // check above this particle is if it is an air or not
-                            if (IsParticleEmpty(i, j + 1, k))
+                            if (IsVoxelEmpty(i, j + 1, k))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.TopAndBottom);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.TopAndBottom);
 
                                 // build top quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[16].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[16].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[17].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[17].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[18].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[18].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[19].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[19].Position, isVoxelMerged);
 
                                 AddQuadIndices();
 
@@ -207,20 +200,19 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
 
                             // check bellow this particle is if it is an air or not
-                            if (IsParticleEmpty(i, j - 1, k))
+                            if (IsVoxelEmpty(i, j - 1, k))
                             {
-                                bool isParticleMerged = true;
-                                //bool isParticleMerged = IsParticleMerged(particle, ParticleSide.TopAndBottom);
+                                bool isVoxelMerged = IsVoxelMerged(particle, VoxelSide.TopAndBottom);
 
                                 // build bottom quad
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[20].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[20].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[21].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[21].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[22].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[22].Position, isVoxelMerged);
 
-                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[23].Position, isParticleMerged);
+                                AddVertex(particle, particleActualPosition + MeshInstance.Cube.Vertices[23].Position, isVoxelMerged);
 
                                 AddQuadIndices();
                             }
@@ -234,7 +226,7 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
             Mesh.Vertices = Helpers.VerticesBuilder(VerticesFastIndexOf.Keys.ToArray());
             Mesh.Indices = Indices.ToArray();
 
-            Mesh.Scale = Vector3.One * Settings.ParticleSize;
+            Mesh.Scale = Vector3.One * Settings.VoxelSize;
 
             VerticesFastIndexOf.Clear();
             Vertices.Clear();
@@ -246,33 +238,26 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
         public void Update(KeyboardState keyboardState, MouseState mouseState, float delta)
         {
 
-            for (int i = 0; i < Particles.GetLength(0); i++)
+            for (int i = 0; i < Voxels.GetLength(0); i++)
             {
-                for (int j = 0; j < Particles.GetLength(1); j++)
+                for (int j = 0; j < Voxels.GetLength(1); j++)
                 {
-                    for (int k = 0; k < Particles.GetLength(2); k++)
+                    for (int k = 0; k < Voxels.GetLength(2); k++)
                     {
-                        Particles[i, j, k].Update(keyboardState, mouseState, delta);
+                        Voxels[i, j, k].Update(keyboardState, mouseState, delta);
                     }
                 }
-            }
-
-            // only rebuild the chunk if a particle move
-            if (IsParticleMove)
-            {
-                BuildMesh();
-                IsParticleMove = false;
             }
         }
 
 
-        private void AddVertex(Particle particle, Vector3 vertexPosition, bool isParticleMerged)
+        private void AddVertex(Voxel particle, Vector3 vertexPosition, bool isVoxelMerged)
         {
             Vertex vertex = new Vertex(position: vertexPosition, color: particle.GetColor());
 
             int vertexHashCode = vertexPosition.GetHashCode();
 
-            if (!verticesTemp.ContainsKey(vertexHashCode) && isParticleMerged)
+            if (!verticesTemp.ContainsKey(vertexHashCode) && isVoxelMerged)
             {
                 verticesTemp.Add(vertexPosition.GetHashCode(), vertex);
 
@@ -282,7 +267,7 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                 verticesIndex++;
             }
 
-            if (!isParticleMerged)
+            if (!isVoxelMerged)
             {
                 VerticesFastIndexOf.Add(vertex, verticesIndex);
                 Vertices.Add(vertex);
@@ -317,11 +302,11 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
             //Console.Write("]\n");
         }
 
-        private bool IsParticleMerged(Particle particle, ParticleSide particleSide)
+        private bool IsVoxelMerged(Voxel particle, VoxelSide particleSide)
         {
-            List<Particle> particleAdjacents = World.GetAllAdjacentParticlesAtSide(particle, ParticleSide.FrontAndBack);
+            List<Voxel> particleAdjacents = World.GetAllAdjacentVoxelsAtSide(particle, VoxelSide.FrontAndBack);
 
-            bool isParticleMerged = false;
+            bool isVoxelMerged = false;
 
             int particleAdjacentsCount = 0;
 
@@ -336,13 +321,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
             if (particleAdjacentsCount == 8)
             {
-                isParticleMerged = true;
+                isVoxelMerged = true;
             }
 
-            return isParticleMerged;
+            return isVoxelMerged;
         }
 
-        public bool IsParticle(ParticleType particleType, int i, int j, int k)
+        public bool IsVoxel(VoxelType particleType, int i, int j, int k)
         {
             // particle chunk array bountry check
             if (i < 0 || i > Settings.ChunkSize - 1 ||
@@ -352,10 +337,10 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                 return false;
             }
 
-            return Particles[i, j, k].Type == particleType;
+            return Voxels[i, j, k].Type == particleType;
         }
 
-        public bool IsParticleEmpty(int i, int j, int k)
+        public bool IsVoxelEmpty(int i, int j, int k)
         {
             // particle chunk array bountry check
             if (i < 0 || i > Settings.ChunkSize - 1 ||
@@ -365,7 +350,7 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                 return true;
             }
 
-            return Particles[i, j, k].Type == ParticleType.Air;
+            return Voxels[i, j, k].Type == VoxelType.Air;
         }
 
         public int GetChunkHash()
