@@ -1,8 +1,7 @@
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using EmergenceWorld.Scripts.Core.BufferObjects;
 using EmergenceWorld.Scripts.Core.Interfaces;
-using EmergenceWorld.Scripts.Utils;
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 
 namespace EmergenceWorld.Scripts.Core.Components
 {
@@ -81,13 +80,6 @@ namespace EmergenceWorld.Scripts.Core.Components
             Indices = indices;
 
             BufferUsageHint = bufferUsageHint;
-        }
-
-
-        public Mesh(Vector3 position, Vector3 rotation, Vector3 scale, BufferUsageHint bufferUsageHint, MeshInstance meshInstance)
-            : this(position, rotation, scale, bufferUsageHint, Helpers.VerticesBuilder(meshInstance.Vertices), meshInstance.Indices)
-        {
-
         }
 
         public void Bind()

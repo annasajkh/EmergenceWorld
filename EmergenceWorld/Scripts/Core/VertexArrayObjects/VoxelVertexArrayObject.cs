@@ -1,23 +1,25 @@
-using EmergenceWorld.Scripts.Core.Abstractions;
+using EmergenceWorld.Scripts.Core.OpenGLObjects;
 using OpenTK.Graphics.OpenGL4;
 
-namespace EmergenceWorld.Scripts.Core.OpenGLObjects
+namespace EmergenceWorld.Scripts.Core.VertexArrayObjects
 {
-    public class VertexArrayObject : OpenGLObject
+    public class VoxelVertexArrayObject : VertexArrayObject
     {
-        public VertexArrayObject()
+        public static int VoxelAttributeSize { get; } = Shader.PositionAttributeSize + Shader.ColorAttributeSize;
+
+        public VoxelVertexArrayObject()
         {
             Handle = GL.GenVertexArray();
         }
 
-        public void ApplyAttributes()
+        public override void ApplyAttributes()
         {
             // position attribute
             GL.VertexAttribPointer(index: 0,
                                    size: Shader.PositionAttributeSize,
                                    type: VertexAttribPointerType.Float,
                                    normalized: false,
-                                   stride: Shader.AllAttributeSize * sizeof(float),
+                                   stride: VoxelAttributeSize * sizeof(float),
                                    offset: 0);
             GL.EnableVertexAttribArray(0);
 
@@ -26,9 +28,10 @@ namespace EmergenceWorld.Scripts.Core.OpenGLObjects
                                    size: Shader.ColorAttributeSize,
                                    type: VertexAttribPointerType.Float,
                                    normalized: false,
-                                   stride: Shader.AllAttributeSize * sizeof(float),
+                                   stride: VoxelAttributeSize * sizeof(float),
                                    offset: Shader.PositionAttributeSize * sizeof(float));
             GL.EnableVertexAttribArray(1);
+
         }
 
         public override void Bind()

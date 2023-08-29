@@ -1,5 +1,5 @@
 using EmergenceWorld.Scripts.Core.Containers;
-using EmergenceWorld.Scripts.Core.OpenGLObjects;
+using EmergenceWorld.Scripts.Core.VertexArrayObjects;
 using OpenTK.Mathematics;
 
 namespace EmergenceWorld.Scripts.Utils
@@ -8,12 +8,12 @@ namespace EmergenceWorld.Scripts.Utils
     {
         private static float SnapToGrid(float value, float gridSize)
         {
-            return (float)(MathHelper.Round(value / gridSize) * gridSize);
+            return (float)(MathHelper.Floor(value / gridSize) * gridSize);
         }
 
-        public static Vector3i SnapToGrid(Vector3i value, int gridSize)
+        public static Vector3 SnapToGrid(Vector3 value, int gridSize)
         {
-            return value / gridSize * gridSize;
+            return new Vector3(SnapToGrid(value.X, gridSize), SnapToGrid(value.Y, gridSize), SnapToGrid(value.Z, gridSize));
         }
 
 
@@ -38,13 +38,13 @@ namespace EmergenceWorld.Scripts.Utils
             }
         }
 
-        public static float[] VerticesBuilder(Vertex[] vertices)
+        public static float[] VoxelVerticesBuilder(VoxelVertex[] vertices)
         {
-            float[] verticesResult = new float[Shader.AllAttributeSize * vertices.Length];
+            float[] verticesResult = new float[VoxelVertexArrayObject.VoxelAttributeSize * vertices.Length];
 
             int index = 0;
 
-            for (int i = 0; i < verticesResult.Length; i += Shader.AllAttributeSize)
+            for (int i = 0; i < verticesResult.Length; i += VoxelVertexArrayObject.VoxelAttributeSize)
             {
                 verticesResult[i] = vertices[index].Position.X;
                 verticesResult[i + 1] = vertices[index].Position.Y;

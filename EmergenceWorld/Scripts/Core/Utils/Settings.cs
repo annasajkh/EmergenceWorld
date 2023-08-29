@@ -1,13 +1,12 @@
-﻿using EmergenceWorld.Scripts.Core.Noise;
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK.Graphics.OpenGL4;
 using StbImageSharp;
 
 namespace EmergenceWorld.Scripts.Core.Utils
 {
     public static class Settings
     {
-        public static int ChunkSize { get; } = 36; // in particle unit
-        public static int VoxelSize { get; } = 8;
+        public static int ChunkSize { get; } = 128; // in voxel unit
+        public static int VoxelSize { get; } = 4;
         public static int ChunkFullSize { get; } = ChunkSize * VoxelSize; // chunk actual size
 
         public static void Init()
@@ -15,8 +14,6 @@ namespace EmergenceWorld.Scripts.Core.Utils
             // Settings
 
             GL.Enable(EnableCap.CullFace);
-
-            Game.Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
 
             GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);

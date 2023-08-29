@@ -1,7 +1,5 @@
-﻿using EmergenceWorld.Scripts.Core.Components;
-using EmergenceWorld.Scripts.Core.Entities;
-using EmergenceWorld.Scripts.Core.OpenGLObjects;
-using EmergenceWorld.Scripts.Core.Utils;
+﻿using EmergenceWorld.Scripts.Core.Entities;
+using EmergenceWorld.Scripts.Core.Noise;
 using EmergenceWorld.Scripts.Core.Voxels;
 using EmergenceWorld.Scripts.Core.WorldGeneration;
 using OpenTK.Graphics.OpenGL4;
@@ -14,34 +12,61 @@ namespace EmergenceWorld.Scripts.Core.Scenes
     public class World : Scene
     {
         public Dictionary<int, Chunk> Chunks = new Dictionary<int, Chunk>();
-
-        private bool stepSimulation = false; // if this set to true then the particle the simulation will step once and this will set to be false again
-        private Timer simulationTimer;
-        private Player player;
-        private Mesh sun;
-        private Vector3 lightPosition;
+        public Random Random { get; }
+        public FastNoiseLite Noise { get; }
+        public bool Determistic { get; } = true;
 
         // 0 - 360
         private float time = 45;
+        private bool voxelUpdateStep = false; // if this set to true then the voxel update will step once and this will set to be false again
+        private Timer voxelUpdateTimer;
+        private Player player;
+        private Vector3 lightPosition;
 
         public World()
         {
+            // Settings
+            if (Determistic)
+            {
+                Random = new Random(1);
+                Noise = new FastNoiseLite(1);
+            }
+            else
+            {
+                Random = new Random();
+                Noise = new FastNoiseLite(Random.Next());
+            }
+
+            Noise.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2);
+
+            // Setup the Renderer
+            Game.Renderer.Shader.Bind();
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("material.ambient"), 1.25f, 1.25f, 1.25f);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("material.diffuse"), 0.5f, 0.5f, 0.5f);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("material.specular"), 1f, 1f, 1f);
+            GL.Uniform1(Game.Renderer.Shader.GetUniformLocation("material.shininess"), 32f);
+
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("dirLight.ambient"), 1.25f, 1.25f, 1.25f);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("dirLight.specular"), 1f, 1f, 1f);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("lightColor"), 1f, 1f, 1f);
+            Game.Renderer.Shader.Unbind();
+
+
+
             // Initialization
             player = new Player(position: Vector3.Zero,
                                 rotation: Vector3.Zero,
                                 scale: Vector3.One,
                                 cameraSize: new Vector2(Game.WindowWidth, Game.WindowHeight));
 
-            sun = new Mesh(new Vector3(0, 0, 10000), Vector3.Zero, new Vector3(500, 500, 1), BufferUsageHint.StaticDraw, MeshInstance.Quad);
-
             lightPosition = new Vector3(0, 100, 0);
 
-            simulationTimer = new Timer(0.01f, SimulationTimeout);
-            simulationTimer.Start();
+            voxelUpdateTimer = new Timer(0.01f, VoxelUpdate);
+            voxelUpdateTimer.Start();
 
 
-
-            new Chunk(new Vector3i(-Settings.ChunkSize / 2, -Settings.ChunkSize, -Settings.ChunkSize / 2), this);
+            Chunk chunk = new Chunk(new Vector3i(0, 0, 0), this);
         }
 
         public override void Load()
@@ -51,45 +76,44 @@ namespace EmergenceWorld.Scripts.Core.Scenes
 
         public override void Unload()
         {
-            sun.Dispose();
             Chunks.Clear();
         }
 
-        public override void WindowResized(Renderer renderer)
+        public override void WindowResized()
         {
             player.Camera.Resize(Game.WindowWidth, Game.WindowHeight);
-            renderer.Projection = player.Camera.ProjectionMatrix;
+            Game.Renderer.Projection = player.Camera.ProjectionMatrix;
         }
 
-        public override void Update(Renderer renderer, KeyboardState keyboardState, MouseState mouseState, float delta)
+        public override void Update(KeyboardState keyboardState, MouseState mouseState, float delta)
         {
-            simulationTimer.Step(delta);
+            voxelUpdateTimer.Step(delta);
 
             player.Update(keyboardState, mouseState, delta);
 
-            renderer.View = player.Camera.ViewMatrix;
+            Game.Renderer.View = player.Camera.ViewMatrix;
 
             Vector3 sunDirection = Vector3.Normalize(lightPosition - player.Position);
 
-            renderer.Shader.Bind();
+            Game.Renderer.Shader.Bind();
             
-            GL.Uniform3(renderer.Shader.GetUniformLocation("uViewPos"), player.Position);
-            GL.Uniform3(renderer.Shader.GetUniformLocation("uLightPos"), lightPosition);
-            GL.Uniform3(renderer.Shader.GetUniformLocation("dirLight.direction"), sunDirection);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("uViewPos"), player.Position);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("uLightPos"), lightPosition);
+            GL.Uniform3(Game.Renderer.Shader.GetUniformLocation("dirLight.direction"), sunDirection);
 
-            renderer.Shader.Unbind();
-
+            Game.Renderer.Shader.Unbind();
 
             lightPosition = player.Position + new Vector3((float)MathHelper.Cos(MathHelper.DegreesToRadians(time)), (float)MathHelper.Sin(MathHelper.DegreesToRadians(time)), 0) * 5000;
 
-            if (stepSimulation)
+
+            if (voxelUpdateStep)
             {
                 foreach (KeyValuePair<int, Chunk> entry in Chunks)
                 {
                     entry.Value.Update(keyboardState, mouseState, delta);
                 }
 
-                stepSimulation = false;
+                voxelUpdateStep = false;
             }
 
             //sun.Position = lightPosition + new Vector3((float)MathHelper.Cos(MathHelper.DegreesToRadians(time)), (float)MathHelper.Sin(MathHelper.DegreesToRadians(time)), 0) * 100;
@@ -97,7 +121,7 @@ namespace EmergenceWorld.Scripts.Core.Scenes
 
             if (keyboardState.IsKeyPressed(Keys.Enter))
             {
-                Game.Noise.SetSeed(Game.Random.Next());
+                Noise.SetSeed(Game.Random.Next());
 
                 foreach (KeyValuePair<int, Chunk> entry in Chunks)
                 {
@@ -120,160 +144,163 @@ namespace EmergenceWorld.Scripts.Core.Scenes
             }
         }
 
-        public override void Render(Renderer renderer, VertexArrayObject vertexArrayObject)
+        public override void Render()
         {
             GL.Enable(EnableCap.Blend);
             GL.Disable(EnableCap.CullFace);
-
-            // draw the sun
-            renderer.Draw(sun, vertexArrayObject);
 
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.CullFace);
 
             foreach (KeyValuePair<int, Chunk> entry in Chunks)
             {
-                renderer.Draw(entry.Value.Mesh, vertexArrayObject);
+                Game.Renderer.Render(entry.Value.Mesh);
             }
         }
-
-        public void SimulationTimeout()
-        {
-            stepSimulation = true;
-        }
-
 
 
         /// <summary>
-        /// Get a particle in the world, if it doesn't exist (i.e the chunk doesn't exist) then return null
+        /// Update all the voxel in this world
         /// </summary>
-        /// <param name="particlePosition"></param>
-        /// <returns></returns>
-        public Voxel? GetVoxel(Vector3i particlePosition)
+        public void VoxelUpdate()
         {
-            Voxel? particle = null;
+            voxelUpdateStep = true;
+        }
 
 
-            Vector3i chunkPosition = Chunk.GetChunkPosition(particlePosition);
-            int chunkHash = Chunk.GetChunkHash(particlePosition);
+        /// <summary>
+        /// Get voxel in this world, if it doesn't exist return null
+        /// </summary>
+        /// <param name="voxelPosition"></param>
+        /// <returns></returns>
+        public Voxel? GetVoxel(Vector3i voxelPosition)
+        {
+            Vector3i chunkPosition = Chunk.GetChunkPosition(voxelPosition);
 
-            Vector3i particleIndices = particlePosition - chunkPosition;
+            int chunkHash = Chunk.GetChunkHash(chunkPosition);
 
-            if (particleIndices[0] < 0 || particleIndices[0] > Settings.ChunkSize - 1 ||
-                particleIndices[1] < 0 || particleIndices[1] > Settings.ChunkSize - 1 ||
-                particleIndices[2] < 0 || particleIndices[1] > Settings.ChunkSize - 1)
-            {
-                return particle;
-            }
+            Vector3i voxelIndices = voxelPosition - chunkPosition;
 
             if (Chunks.ContainsKey(chunkHash))
             {
                 Chunk chunk = Chunks[chunkHash];
 
-                particle = chunk.Voxels[particleIndices.X, particleIndices.Y, particleIndices.Z];
+                return chunk.Voxels[voxelIndices.X, voxelIndices.Y, voxelIndices.Z];
             }
 
-            return particle;
+            return null;
         }
+
 
         /// <summary>
-        /// Check if a particle is empty, empty means the particle type is Air or if it doesn't exist in the world
+        /// Check voxel in this world with a spesific type, if it doesn't exist return false
         /// </summary>
-        /// <param name="particlePosition"></param>
-        public bool IsVoxelEmpty(Vector3i particlePosition)
+        /// <param name="voxelType"></param>
+        /// <param name="voxelPosition"></param>
+        public bool VoxelIsType(Vector3i voxelPosition, VoxelType voxelType)
         {
-            Voxel? particle = GetVoxel(particlePosition);
+            Voxel? voxel = GetVoxel(voxelPosition);
 
-            // check if the particle exist in the world or not
-            if (particle == null)
-            {
-                return true;
-            }
-
-            return particle.Type == VoxelType.Air;
-        }
-
-
-        public bool IsVoxelAir(Vector3i particlePosition)
-        {
-            Voxel? particle = GetVoxel(particlePosition);
-
-            // check if the particle exist in the world or not
-            if (particle == null)
+            // check if the voxel exist in the world or not
+            if (voxel == null)
             {
                 return false;
             }
 
-            return particle.Type == VoxelType.Air;
+            return voxel.Type == voxelType;
         }
 
-        // get all Adjacent particles base on side
-        //
-        // visualisation, o is the particle and x is the side it check
-        //
-        // x | x | x
-        // ---------
-        // x | o | x
-        //----------
-        // x | x | x
-        public List<Voxel> GetAllAdjacentVoxelsAtSide(Voxel particle, VoxelSide particleSide)
+
+        /// <summary>
+        /// Check voxel in this world if it's empty or not, empty means the voxel is either air or doesn't exist
+        /// </summary>
+        /// <param name="voxelType"></param>
+        /// <param name="voxelPosition"></param>
+        public bool IsVoxelEmpty(Vector3i voxelPosition)
+        {
+            Voxel? voxel = GetVoxel(voxelPosition);
+
+            // check if the voxel exist in the world or not
+            if (voxel == null)
+            {
+                return true;
+            }
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// get all Adjacent voxels base on side
+        ///
+        /// visualisation, o is the voxel and x is the side it check
+        ///
+        /// x | x | x
+        /// ---------
+        /// x | o | x
+        /// ---------
+        /// x | x | x
+        /// </summary>
+        /// <param name="voxel"></param>
+        /// <param name="voxelSide"></param>
+        /// <returns></returns>
+        public List<Voxel> GetAllAdjacentVoxelsAtSide(Voxel voxel, VoxelSide voxelSide)
         {
             List<Voxel> adjacentVoxels = new List<Voxel>();
 
-            switch (particleSide)
+            switch (voxelSide)
             {
                 case VoxelSide.TopAndBottom:
-                    Voxel? adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, 0, 0));
+                    Voxel? adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, 0, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 0, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, 1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 0, -1));
-
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, 0, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, -1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, 0, -1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, 0, -1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, -1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, 0, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, -1));
+
+                    if (adjacentVoxel != null)
+                    {
+                        adjacentVoxels.Add(adjacentVoxel);
+                    }
+
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 1));
 
                     if (adjacentVoxel != null)
                     {
@@ -282,28 +309,28 @@ namespace EmergenceWorld.Scripts.Core.Scenes
                     break;
 
                 case VoxelSide.LeftAndRight:
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, -1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 0, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, 1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 0, -1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, -1));
 
 
                     if (adjacentVoxel != null)
@@ -311,28 +338,28 @@ namespace EmergenceWorld.Scripts.Core.Scenes
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 1, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, -1, -1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, -1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 1, -1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, -1));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, -1, 1));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 1));
 
                     if (adjacentVoxel != null)
                     {
@@ -341,28 +368,28 @@ namespace EmergenceWorld.Scripts.Core.Scenes
                     break;
 
                 case VoxelSide.FrontAndBack:
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, 1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(0, -1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, 0, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, 0, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 0));
 
 
                     if (adjacentVoxel != null)
@@ -370,28 +397,28 @@ namespace EmergenceWorld.Scripts.Core.Scenes
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, 1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, -1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, -1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(1, -1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, -1, 0));
 
                     if (adjacentVoxel != null)
                     {
                         adjacentVoxels.Add(adjacentVoxel);
                     }
 
-                    adjacentVoxel = GetVoxel(particle.Position + new Vector3i(-1, 1, 0));
+                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 1, 0));
 
                     if (adjacentVoxel != null)
                     {
@@ -406,6 +433,9 @@ namespace EmergenceWorld.Scripts.Core.Scenes
             return adjacentVoxels;
         }
 
-
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

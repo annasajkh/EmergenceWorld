@@ -1,9 +1,8 @@
 ﻿using EmergenceWorld.Scripts.Core.Components;
 using EmergenceWorld.Scripts.Core.Managers;
-using EmergenceWorld.Scripts.Core.Noise;
-using EmergenceWorld.Scripts.Core.OpenGLObjects;
 using EmergenceWorld.Scripts.Core.Scenes;
 using EmergenceWorld.Scripts.Core.Utils;
+using EmergenceWorld.Scripts.Core.VertexArrayObjects;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
@@ -16,12 +15,10 @@ namespace EmergenceWorld.Scripts.Core
 {
     public class Game : GameWindow
     {
-        public VertexArrayObject VertexArrayObject { get; private set; }
-        public Renderer Renderer { get; private set; }
+        public static Renderer Renderer { get; private set; }
         public static ResourceManager ResourceManager { get; private set; }
         public static SceneManager SceneManager { get; private set; }
         public static Random Random { get; } = new Random();
-        public static FastNoiseLite Noise { get; } = new FastNoiseLite(Random.Next());
         public static int WindowWidth { get; private set; }
         public static int WindowHeight { get; private set; }
         public static float TimeScale { get; set; } = 1;
@@ -43,25 +40,9 @@ namespace EmergenceWorld.Scripts.Core
 
             ResourceManager = new ResourceManager();
 
-            // Load resources
             ResourceManager.AddShader("VoxelShader");
 
-
-            // Setup the Renderer
-            Renderer = new Renderer(ResourceManager.Shaders["VoxelShader"]);
-
-            Renderer.Shader.Bind();
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("material.ambient"), 1.25f, 1.25f, 1.25f);
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("material.diffuse"), 0.5f, 0.5f, 0.5f);
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("material.specular"), 1f, 1f, 1f);
-            GL.Uniform1(Renderer.Shader.GetUniformLocation("material.shininess"), 32f);
-
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("dirLight.ambient"), 1.25f, 1.25f, 1.25f);
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("dirLight.diffuse"), 0.5f, 0.5f, 0.5f);
-            GL.Uniform3(Renderer.Shader.GetUniformLocation("dirLight.specular"), 1f, 1f, 1f);
-            Renderer.Shader.Unbind();
-
-            VertexArrayObject = new VertexArrayObject();
+            Renderer = new Renderer(ResourceManager.Shaders["VoxelShader"], new VoxelVertexArrayObject());
 
             SceneManager = new SceneManager(new World());
         }
@@ -81,14 +62,13 @@ namespace EmergenceWorld.Scripts.Core
 
             GL.Viewport(0, 0, WindowWidth, WindowHeight);
 
-            SceneManager.CurrentScene.WindowResized(Renderer);
+            SceneManager.CurrentScene.WindowResized();
         }
 
         protected override void OnUnload()
         {
             base.OnUnload();
 
-            Renderer.Dispose();
             SceneManager.CurrentScene.Unload();
         }
 
@@ -118,11 +98,7 @@ namespace EmergenceWorld.Scripts.Core
                     Close();
                 }
 
-                Renderer.Shader.Bind();
-                GL.Uniform3(Renderer.Shader.GetUniformLocation("lightColor"), 1f, 1f, 1f);
-                Renderer.Shader.Unbind();
-
-                SceneManager.CurrentScene.Update(Renderer, keyboardState, MouseState, (float)frameEventArgs.Time * TimeScale);
+                SceneManager.CurrentScene.Update(keyboardState, MouseState, (float)frameEventArgs.Time * TimeScale);
             }
         }
 
@@ -135,7 +111,7 @@ namespace EmergenceWorld.Scripts.Core
 
             Renderer.Begin();
 
-            SceneManager.CurrentScene.Render(Renderer, VertexArrayObject);
+            SceneManager.CurrentScene.Render();
 
             Renderer.End();
 

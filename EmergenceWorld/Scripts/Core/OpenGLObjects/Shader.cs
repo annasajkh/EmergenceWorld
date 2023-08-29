@@ -7,8 +7,8 @@ namespace EmergenceWorld.Scripts.Core.OpenGLObjects
     {
         public static int PositionAttributeSize { get; } = 3;
         public static int ColorAttributeSize { get; } = 4;
-
-        public static int AllAttributeSize { get; } = PositionAttributeSize + ColorAttributeSize;
+        public static int NormalAttributeSize { get; } = 3;
+        public static int TextureCoordinateAttributeSize { get; } = 2;
 
         private static Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
 

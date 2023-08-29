@@ -49,7 +49,6 @@ float specularStrength = 0.1;
 // outputs
 out vec4 FragColor;
 
-uniform sampler2D uTexture;
 
 vec3 CalculateDirectionalLight(DirLight light, vec3 normal, vec3 viewDir)
 {

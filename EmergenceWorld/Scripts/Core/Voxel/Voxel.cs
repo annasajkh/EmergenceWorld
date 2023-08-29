@@ -33,7 +33,6 @@ namespace EmergenceWorld.Scripts.Core.Voxels
         public Chunk Chunk { get; private set; }
 
 
-
         public Voxel(Vector3i position, int i, int j, int k, VoxelType type, Chunk chunk) 
         {
             Position = position;
@@ -43,21 +42,6 @@ namespace EmergenceWorld.Scripts.Core.Voxels
             this.i = i;
             this.j = j;
             this.k = k;
-        }
-
-        public bool Move(int iParams, int jParams, int kParams)
-        {
-            if (Chunk.IsVoxel(VoxelType.Air, iParams, jParams, kParams))
-            {
-                VoxelType particleType = Type;
-
-                Chunk.Voxels[i, j, k].Type = VoxelType.Air;
-                Chunk.Voxels[iParams, jParams, kParams].Type = particleType;
-
-                return true;
-            }
-
-            return false;
         }
 
         public void Update(KeyboardState keyboardState, MouseState mouseState, float delta)

@@ -6,7 +6,7 @@ namespace EmergenceWorld.Scripts.Core.Entities
 {
     public class Player : Entity
     {
-        private float speed = 1000f;
+        private float speed = 100f;
 
 
         private float yaw;
