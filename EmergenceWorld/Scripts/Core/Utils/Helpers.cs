@@ -1,4 +1,5 @@
 using EmergenceWorld.Scripts.Core.Containers;
+using EmergenceWorld.Scripts.Core.Utils;
 using EmergenceWorld.Scripts.Core.VertexArrayObjects;
 using OpenTK.Mathematics;
 
@@ -61,6 +62,11 @@ namespace EmergenceWorld.Scripts.Utils
 
             return verticesResult;
 
+        }
+
+        public static int GetChunkHashCode(Vector3i voxelPosition)
+        {
+            return SnapToGrid(voxelPosition, Settings.ChunkSize).GetHashCode();
         }
     }
 }

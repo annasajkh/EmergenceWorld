@@ -5,9 +5,11 @@ namespace EmergenceWorld.Scripts.Core.Utils
 {
     public static class Settings
     {
-        public static int ChunkSize { get; } = 128; // in voxel unit
+        public static int ChunkSize { get; } = 16; // in voxel unit
         public static int VoxelSize { get; } = 4;
         public static int ChunkFullSize { get; } = ChunkSize * VoxelSize; // chunk actual size
+
+        public static int RenderDistance { get; } = 5;
 
         public static void Init()
         {

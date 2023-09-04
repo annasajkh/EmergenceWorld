@@ -36,14 +36,12 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
             Vertices = new List<VoxelVertex>();
             Indices = new List<uint>();
 
-            Mesh = new Mesh(position: position,
+            Mesh = new Mesh(position: position * Settings.VoxelSize,
                             rotation: Vector3.Zero,
                             scale: Vector3.One,
                             bufferUsageHint: BufferUsageHint.DynamicDraw,
                             vertices: new float[] { },
                             indices: new uint[] { });
-
-            BuildChunk();
         }
 
 
@@ -59,17 +57,22 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                     {
                         // voxel position is its chunk position with offset depending on its index
                         Vector3i voxelPosition = new Vector3i(Position.X + i, Position.Y + j, Position.Z + k);
-                        VoxelType voxelType = World.Noise.GetNoise(Position.X + i * 2, Position.Y + j * 2, Position.Z + k * 2) > 0 ? voxelTypes[Game.Random.Next() % voxelTypes.Length] : VoxelType.Air;
+
+                        float noise = World.Noise.GetNoise(voxelPosition.X * Settings.VoxelSize,
+                                                           voxelPosition.Y * Settings.VoxelSize,
+                                                           voxelPosition.Z * Settings.VoxelSize);
+
+                        VoxelType voxelType = noise > 0 ? voxelTypes[Game.Random.Next() % voxelTypes.Length] : VoxelType.Air;
 
 
-                        Voxels[i, j, k] = new Voxel(position: voxelPosition, i: i, j: j, k: k, type: voxelType, chunk: this);
+                        Voxels[i, j, k] = new Voxel(voxelPosition, voxelType, World);
                     }
                 }
             }
 
-            if (!World.Chunks.ContainsKey(GetChunkHash()))
+            if (!World.Chunks.ContainsKey(GetChunkHashCode()))
             {
-                World.Chunks.Add(GetChunkHash(), this);
+                World.Chunks.Add(GetChunkHashCode(), this);
             }
 
             BuildMesh();
@@ -89,7 +92,7 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                         if (!(voxel.Type == VoxelType.Air))
                         {
                             // voxel actual position in world coordinate and not voxel coordinate
-                            Vector3 voxelActualPosition = voxel.Position;
+                            Vector3 voxelActualPosition = voxel.Position * Settings.VoxelSize;
 
 
                             // check front this voxel is if it is an air or not
@@ -97,13 +100,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                             {
                                 // build front quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[0].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[0].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[1].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[1].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[2].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[2].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[3].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[3].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
                             }
@@ -113,13 +116,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                             {
                                 // build back quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[4].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[4].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[5].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[5].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[6].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[6].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[7].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[7].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
                             }
@@ -130,13 +133,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                             {
                                 // build left quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[8].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[8].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[9].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[9].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[10].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[10].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[11].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[11].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
                             }
@@ -147,13 +150,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                             {
                                 // build right quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[12].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[12].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[13].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[13].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[14].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[14].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[15].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[15].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
                             }
@@ -166,13 +169,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
                                 // build top quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[16].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[16].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[17].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[17].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[18].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[18].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[19].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[19].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
 
@@ -183,13 +186,13 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                             {
                                 // build bottom quad
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[20].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[20].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[21].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[21].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[22].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[22].Position * Settings.VoxelSize);
 
-                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[23].Position);
+                                AddVertex(voxel, voxelActualPosition + VoxelMeshInstance.VoxelCube.Vertices[23].Position * Settings.VoxelSize);
 
                                 AddQuadIndices();
                             }
@@ -205,8 +208,6 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
 
             Console.WriteLine(VerticesFastIndexOf.Keys.Count);
             Console.WriteLine(Indices.Count);
-
-            Mesh.Scale = Vector3.One * Settings.VoxelSize;
 
             VerticesFastIndexOf.Clear();
             Vertices.Clear();
@@ -274,49 +275,8 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                 Indices.Add((uint)quadVertexIndices[(int)VoxelMeshInstance.VoxelQuad.Indices[i]]);
             }
 
-
             quadVertexIndices.Clear();
-
-            //Console.Write("[ ");
-
-            //for (int i = 0; i < Indices.Count; i++)
-            //{
-            //    Console.Write($"{Indices[i]}, ");
-            //}
-
-            //Console.Write("]\n");
         }
-
-        /// <summary>
-        /// Check if vertex need to be merged
-        /// </summary>
-        /// <param name="voxel"></param>
-        /// <param name="voxelSide"></param>
-        /// <returns></returns>
-        //private bool CheckIsVoxelMerged(Voxel voxel, VoxelSide voxelSide)
-        //{
-        //    List<Voxel> voxelAdjacents = World.GetAllAdjacentVoxelsAtSide(voxel, voxelSide);
-
-        //    bool isVoxelMerged = false;
-
-        //    int voxelAdjacentsCount = 0;
-
-
-        //    for (int i = 0; i < voxelAdjacents.Count; i++)
-        //    {
-        //        if (voxelAdjacents[i].Type == voxel.Type)
-        //        {
-        //            voxelAdjacentsCount++;
-        //        }
-        //    }
-
-        //    if (voxelAdjacentsCount == 8)
-        //    {
-        //        isVoxelMerged = true;
-        //    }
-
-        //    return isVoxelMerged;
-        //}
 
 
         /// <summary>
@@ -359,8 +319,12 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
             return voxel.Type == voxelType;
         }
 
+
         /// <summary>
-        /// Check voxel in this chunk if it's empty or not, empty means the voxel is either air or doesn't exist
+        /// Check voxel in this chunk if it's empty or not
+        /// empty means the voxel is either air or doesn't exist
+        /// if it doesn't exist in this chunk then search the world this chunk in
+        /// why doing this instead of just searching the world? for performance ofc!
         /// </summary>
         /// <param name="i"></param>
         /// <param name="j"></param>
@@ -372,25 +336,16 @@ namespace EmergenceWorld.Scripts.Core.WorldGeneration
                 j < 0 || j > Settings.ChunkSize - 1 ||
                 k < 0 || k > Settings.ChunkSize - 1)
             {
-                return true;
+                return true;// World.IsVoxelEmpty(new Vector3i(Position.X + i, Position.Y + j, Position.Z + k));
             }
 
             return Voxels[i, j, k].Type == VoxelType.Air;
         }
 
-
-
-        public int GetChunkHash()
+        public int GetChunkHashCode()
         {
             return Helpers.SnapToGrid(Position, Settings.ChunkSize).GetHashCode();
         }
-
-
-        public static int GetChunkHash(Vector3i voxelPosition)
-        {
-            return Helpers.SnapToGrid(voxelPosition, Settings.ChunkSize).GetHashCode();
-        }
-
 
         /// <summary>
         /// Get chunk position base on voxel position

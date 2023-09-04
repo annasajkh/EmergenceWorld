@@ -1,5 +1,7 @@
 ﻿using EmergenceWorld.Scripts.Core.Interfaces;
+using EmergenceWorld.Scripts.Core.Scenes;
 using EmergenceWorld.Scripts.Core.WorldGeneration;
+using EmergenceWorld.Scripts.Utils;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Drawing;
@@ -16,32 +18,24 @@ namespace EmergenceWorld.Scripts.Core.Voxels
         Sand
     }
 
-    public enum VoxelSide
-    {
-        TopAndBottom,
-        LeftAndRight,
-        FrontAndBack
-    }
-
     public class Voxel : IUpdateable
     {
         public Vector3i Position { get; }
-        public int i { get; }
-        public int j { get; }
-        public int k { get; }
         public VoxelType Type { get; set; }
-        public Chunk Chunk { get; private set; }
+        public World World { get; }
+        public Chunk Chunk
+        {
+            get
+            {
+                return World.Chunks[Helpers.GetChunkHashCode(Position)];
+            }
+        }
 
-
-        public Voxel(Vector3i position, int i, int j, int k, VoxelType type, Chunk chunk) 
+        public Voxel(Vector3i position, VoxelType type, World world) 
         {
             Position = position;
             Type = type;
-            Chunk = chunk;
-
-            this.i = i;
-            this.j = j;
-            this.k = k;
+            World = world;
         }
 
         public void Update(KeyboardState keyboardState, MouseState mouseState, float delta)

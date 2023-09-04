@@ -1,7 +1,9 @@
 ﻿using EmergenceWorld.Scripts.Core.Entities;
 using EmergenceWorld.Scripts.Core.Noise;
+using EmergenceWorld.Scripts.Core.Utils;
 using EmergenceWorld.Scripts.Core.Voxels;
 using EmergenceWorld.Scripts.Core.WorldGeneration;
+using EmergenceWorld.Scripts.Utils;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -55,7 +57,7 @@ namespace EmergenceWorld.Scripts.Core.Scenes
 
 
             // Initialization
-            player = new Player(position: Vector3.Zero,
+            player = new Player(position: new Vector3(0, 100, 0),
                                 rotation: Vector3.Zero,
                                 scale: Vector3.One,
                                 cameraSize: new Vector2(Game.WindowWidth, Game.WindowHeight));
@@ -66,7 +68,25 @@ namespace EmergenceWorld.Scripts.Core.Scenes
             voxelUpdateTimer.Start();
 
 
-            Chunk chunk = new Chunk(new Vector3i(0, 0, 0), this);
+            for (int i = -Settings.RenderDistance / 2; i < Settings.RenderDistance / 2; i++)
+            {
+                for (int j = -Settings.RenderDistance / 2; j < Settings.RenderDistance / 2; j++)
+                {
+                    for (int k = -Settings.RenderDistance / 2; k < Settings.RenderDistance / 2; k++)
+                    {
+                        Chunk chunk = new Chunk(new Vector3i(i * (Settings.ChunkSize / 2),
+                                                             j * (Settings.ChunkSize / 2),
+                                                             k * (Settings.ChunkSize / 2)), this);
+
+                        Chunks.Add(chunk.GetHashCode(), chunk);
+                    }
+                }
+            }
+
+            foreach (Chunk chunk in Chunks.Values.ToList())
+            {
+                chunk.BuildChunk();
+            }
         }
 
         public override void Load()
@@ -108,9 +128,9 @@ namespace EmergenceWorld.Scripts.Core.Scenes
 
             if (voxelUpdateStep)
             {
-                foreach (KeyValuePair<int, Chunk> entry in Chunks)
+                foreach (KeyValuePair<int, Chunk> chunk in Chunks)
                 {
-                    entry.Value.Update(keyboardState, mouseState, delta);
+                    chunk.Value.Update(keyboardState, mouseState, delta);
                 }
 
                 voxelUpdateStep = false;
@@ -123,9 +143,9 @@ namespace EmergenceWorld.Scripts.Core.Scenes
             {
                 Noise.SetSeed(Game.Random.Next());
 
-                foreach (KeyValuePair<int, Chunk> entry in Chunks)
+                foreach (KeyValuePair<int, Chunk> chunk in Chunks)
                 {
-                    entry.Value.BuildChunk();
+                    chunk.Value.BuildChunk();
                 }
             }
 
@@ -146,12 +166,6 @@ namespace EmergenceWorld.Scripts.Core.Scenes
 
         public override void Render()
         {
-            GL.Enable(EnableCap.Blend);
-            GL.Disable(EnableCap.CullFace);
-
-            GL.Disable(EnableCap.Blend);
-            GL.Enable(EnableCap.CullFace);
-
             foreach (KeyValuePair<int, Chunk> entry in Chunks)
             {
                 Game.Renderer.Render(entry.Value.Mesh);
@@ -177,7 +191,7 @@ namespace EmergenceWorld.Scripts.Core.Scenes
         {
             Vector3i chunkPosition = Chunk.GetChunkPosition(voxelPosition);
 
-            int chunkHash = Chunk.GetChunkHash(chunkPosition);
+            int chunkHash = Helpers.GetChunkHashCode(chunkPosition);
 
             Vector3i voxelIndices = voxelPosition - chunkPosition;
 
@@ -226,212 +240,9 @@ namespace EmergenceWorld.Scripts.Core.Scenes
                 return true;
             }
 
-            return true;
+            return voxel.Type == VoxelType.Air;
         }
 
-
-        /// <summary>
-        /// get all Adjacent voxels base on side
-        ///
-        /// visualisation, o is the voxel and x is the side it check
-        ///
-        /// x | x | x
-        /// ---------
-        /// x | o | x
-        /// ---------
-        /// x | x | x
-        /// </summary>
-        /// <param name="voxel"></param>
-        /// <param name="voxelSide"></param>
-        /// <returns></returns>
-        public List<Voxel> GetAllAdjacentVoxelsAtSide(Voxel voxel, VoxelSide voxelSide)
-        {
-            List<Voxel> adjacentVoxels = new List<Voxel>();
-
-            switch (voxelSide)
-            {
-                case VoxelSide.TopAndBottom:
-                    Voxel? adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, -1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, -1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, -1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-                    break;
-
-                case VoxelSide.LeftAndRight:
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 0, -1));
-
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, -1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, -1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 1));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-                    break;
-
-                case VoxelSide.FrontAndBack:
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, 1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(0, -1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 0, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 0, 0));
-
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, 1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, -1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(1, -1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-
-                    adjacentVoxel = GetVoxel(voxel.Position + new Vector3i(-1, 1, 0));
-
-                    if (adjacentVoxel != null)
-                    {
-                        adjacentVoxels.Add(adjacentVoxel);
-                    }
-                    break;
-
-                default:
-                    break;
-            }
-
-            return adjacentVoxels;
-        }
 
         public void Dispose()
         {

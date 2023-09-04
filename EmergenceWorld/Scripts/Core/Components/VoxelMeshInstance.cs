@@ -26,40 +26,40 @@ namespace EmergenceWorld.Scripts.Core.Components
         new VoxelVertex[]
         {
             // front
-            new VoxelVertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1, 1), new Color4(1f, 1f, 1f, 1f)),
 
             // back
-            new VoxelVertex(new Vector3(0.5f, 0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1, 0), new Color4(1f, 1f, 1f, 1f)),
 
             // left
-            new VoxelVertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0,  1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1,  1), new Color4(1f, 1f, 1f, 1f)),
 
             // right
-            new VoxelVertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 1), new Color4(1f, 1f, 1f, 1f)),
 
             // top
-            new VoxelVertex(new Vector3(0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f,  0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 1, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 1, 1), new Color4(1f, 1f, 1f, 1f)),
 
             // bottom
-            new VoxelVertex(new Vector3(-0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f, -0.5f, -0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
-            new VoxelVertex(new Vector3(-0.5f, -0.5f,  0.5f), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 0), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(1, 0, 1), new Color4(1f, 1f, 1f, 1f)),
+            new VoxelVertex(new Vector3(0, 0, 1), new Color4(1f, 1f, 1f, 1f)),
         },
 
         new uint[]
